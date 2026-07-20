@@ -1,4 +1,4 @@
-const CACHE = "contador-crucero-v1";
+const CACHE = "contador-crucero-v2";
 const SHELL = [
   "./",
   "./index.html",
@@ -20,13 +20,31 @@ self.addEventListener("activate", e=>{
 
 self.addEventListener("fetch", e=>{
   const req = e.request;
-  // Nunca cacheamos los envíos al Apps Script
   if(req.method !== "GET" || req.url.includes("script.google")) return;
+
+  const url = new URL(req.url);
+  const esHTML = req.mode === "navigate" ||
+                 url.pathname.endsWith("/") ||
+                 url.pathname.endsWith("index.html");
+
+  if(esHTML){
+    // Red primero: así siempre baja la última versión; si no hay red, usa la cacheada.
+    e.respondWith(
+      fetch(req).then(res=>{
+        const copy = res.clone();
+        caches.open(CACHE).then(c=>c.put("./index.html", copy)).catch(()=>{});
+        return res;
+      }).catch(()=> caches.match("./index.html") || caches.match(req))
+    );
+    return;
+  }
+
+  // Resto de recursos: caché primero.
   e.respondWith(
     caches.match(req).then(hit=> hit || fetch(req).then(res=>{
       const copy = res.clone();
       caches.open(CACHE).then(c=>c.put(req, copy)).catch(()=>{});
       return res;
-    }).catch(()=> caches.match("./index.html")))
+    }))
   );
 });
