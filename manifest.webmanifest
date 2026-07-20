@@ -1,0 +1,16 @@
+{
+  "name": "Contador Taxis · Crucero",
+  "short_name": "Contador",
+  "description": "Contador de taxis que salen de la terminal de cruceros por jornada.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1F09A2",
+  "theme_color": "#1F09A2",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

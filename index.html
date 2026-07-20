@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F09A2">
+<title>Contador Taxis · Crucero</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --azul:#1F09A2;
+    --cyan:#009FE3;
+    --rojo:#C00000;
+    --tinta:#0d0a2e;
+    --gris:#eef0f6;
+    --linea:#d7dbe8;
+    --blanco:#fff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--gris);
+    color:var(--tinta);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    min-height:100vh;
+  }
+  header{
+    background:var(--azul);
+    color:#fff;
+    padding:12px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:5;
+  }
+  header h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.3px}
+  .btn-cfg{
+    background:rgba(255,255,255,.15);border:0;color:#fff;
+    font-size:20px;width:40px;height:40px;border-radius:10px;line-height:1;
+  }
+  main{padding:12px 12px 130px;max-width:560px;margin:0 auto}
+
+  /* Datos de jornada */
+  .jornada{
+    background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:10px 12px;margin-bottom:12px;
+  }
+  .jornada summary{font-weight:800;font-size:14px;cursor:pointer;list-style:none}
+  .jornada summary::-webkit-details-marker{display:none}
+  .jornada summary .chev{float:right;transition:transform .2s}
+  .jornada[open] summary .chev{transform:rotate(90deg)}
+  .campos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .campo{display:flex;flex-direction:column}
+  .campo.full{grid-column:1 / -1}
+  .campo label{font-size:11px;color:#555;font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+  .campo input{
+    font-size:16px;padding:10px;border:1px solid var(--linea);border-radius:10px;
+    background:#fff;color:var(--tinta);
+  }
+  .resumen-jornada{font-size:12px;color:#555;margin-top:6px;font-weight:600}
+
+  /* Botones contador */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{
+    position:relative;border:0;border-radius:16px;color:#fff;
+    padding:16px 12px 14px;text-align:left;min-height:118px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    box-shadow:0 2px 0 rgba(0,0,0,.12);cursor:pointer;
+    -webkit-user-select:none;user-select:none;transition:transform .05s;
+  }
+  .card:active{transform:scale(.98)}
+  .card .rot{font-size:13px;font-weight:800;line-height:1.15;padding-right:44px}
+  .card .sub{font-size:11px;opacity:.85;font-weight:600;margin-top:2px}
+  .card .num{font-size:44px;font-weight:900;line-height:1;margin-top:6px}
+  .card .plus{position:absolute;top:8px;right:10px;font-size:14px;font-weight:800;opacity:.75}
+  .menos{
+    position:absolute;bottom:10px;right:10px;
+    width:40px;height:40px;border-radius:12px;
+    background:rgba(0,0,0,.22);border:0;color:#fff;font-size:22px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .menos:active{background:rgba(0,0,0,.38)}
+  .c1{background:var(--azul)}
+  .c2{background:var(--cyan)}
+  .c3{background:#5a6172}
+  .c4{background:#9aa1b3}
+
+  .total{
+    margin-top:12px;background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .total b{font-size:14px}
+  .total .n{font-size:30px;font-weight:900;color:var(--azul)}
+
+  /* Barra inferior */
+  .barra{
+    position:fixed;left:0;right:0;bottom:0;z-index:6;
+    background:#fff;border-top:1px solid var(--linea);
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    display:flex;gap:10px;max-width:560px;margin:0 auto;
+  }
+  .enviar{
+    flex:1;background:var(--azul);color:#fff;border:0;border-radius:14px;
+    font-size:17px;font-weight:800;padding:16px;
+  }
+  .enviar:disabled{opacity:.5}
+  .reset{
+    background:#fff;color:var(--rojo);border:1px solid var(--linea);border-radius:14px;
+    font-size:13px;font-weight:800;padding:0 16px;
+  }
+
+  /* Toast / diálogo */
+  .toast{
+    position:fixed;left:12px;right:12px;bottom:96px;z-index:9;
+    background:var(--tinta);color:#fff;padding:12px 14px;border-radius:12px;
+    font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.3);
+    transform:translateY(160%);transition:transform .25s;max-width:536px;margin:0 auto;
+  }
+  .toast.show{transform:none}
+  .toast.ok{background:#12772f}
+  .toast.err{background:var(--rojo)}
+
+  dialog{
+    border:0;border-radius:16px;padding:0;max-width:92vw;width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .dlg-in{padding:18px}
+  .dlg-in h2{margin:0 0 8px;font-size:17px}
+  .dlg-in p{margin:0 0 12px;font-size:14px;color:#333;line-height:1.4}
+  .dlg-in table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:14px}
+  .dlg-in td{padding:5px 0;border-bottom:1px solid var(--gris)}
+  .dlg-in td:last-child{text-align:right;font-weight:800}
+  .dlg-acc{display:flex;gap:8px}
+  .dlg-acc button{flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:800;border:0}
+  .b-ok{background:var(--azul);color:#fff}
+  .b-no{background:var(--gris);color:var(--tinta)}
+  .cfg-in{padding:18px}
+  .cfg-in label{font-size:12px;font-weight:800;text-transform:uppercase;color:#555}
+  .cfg-in input{width:100%;font-size:14px;padding:11px;border:1px solid var(--linea);border-radius:10px;margin:6px 0 12px}
+  .cfg-in .nota{font-size:12px;color:#666;line-height:1.4;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Contador Taxis · Crucero</h1>
+  <button class="btn-cfg" id="btnCfg" aria-label="Ajustes">⚙</button>
+</header>
+
+<main>
+  <details class="jornada" id="jornada" open>
+    <summary>Datos de la jornada <span class="chev">›</span></summary>
+    <div class="campos">
+      <div class="campo">
+        <label for="fecha">Fecha</label>
+        <input type="date" id="fecha">
+      </div>
+      <div class="campo">
+        <label for="horario">Horario</label>
+        <input type="text" id="horario" placeholder="08:00–13:00" inputmode="text">
+      </div>
+      <div class="campo full">
+        <label for="crucero">Crucero</label>
+        <input type="text" id="crucero" placeholder="Nombre del barco">
+      </div>
+      <div class="campo">
+        <label for="pax">Pax estimados</label>
+        <input type="number" id="pax" inputmode="numeric" min="0" placeholder="0">
+      </div>
+    </div>
+  </details>
+
+  <div class="grid">
+    <div class="card c1" role="button" tabindex="0" data-k="t34">
+      <span class="plus">+1</span>
+      <span class="rot">Tarifa 3/4<span class="sub">Interurbana</span></span>
+      <span class="num" id="n-t34">0</span>
+      <button class="menos" data-m="t34" aria-label="Restar Tarifa 3/4">−</button>
+    </div>
+
+    <div class="card c2" role="button" tabindex="0" data-k="t12">
+      <span class="plus">+1</span>
+      <span class="rot">Tarifa 1/2<span class="sub">Urbana</span></span>
+      <span class="num" id="n-t12">0</span>
+      <button class="menos" data-m="t12" aria-label="Restar Tarifa 1/2">−</button>
+    </div>
+
+    <div class="card c3" role="button" tabindex="0" data-k="sinver">
+      <span class="plus">+1</span>
+      <span class="rot">Sin ver tarifa<span class="sub">No se aprecia</span></span>
+      <span class="num" id="n-sinver">0</span>
+      <button class="menos" data-m="sinver" aria-label="Restar Sin ver tarifa">−</button>
+    </div>
+
+    <div class="card c4" role="button" tabindex="0" data-k="vacio">
+      <span class="plus">+1</span>
+      <span class="rot">Vacío<span class="sub">Sin pasaje</span></span>
+      <span class="num" id="n-vacio">0</span>
+      <button class="menos" data-m="vacio" aria-label="Restar Vacío">−</button>
+    </div>
+  </div>
+
+  <div class="total">
+    <b>Total taxis</b>
+    <span class="n" id="n-total">0</span>
+  </div>
+</main>
+
+<div class="barra">
+  <button class="reset" id="btnReset">Reiniciar</button>
+  <button class="enviar" id="btnEnviar">Enviar jornada</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Confirmación de envío -->
+<dialog id="dlgEnviar">
+  <div class="dlg-in">
+    <h2>Enviar jornada</h2>
+    <p id="dlgResumen"></p>
+    <table id="dlgTabla"></table>
+    <div class="dlg-acc">
+      <button class="b-no" id="dlgCancelar">Cancelar</button>
+      <button class="b-ok" id="dlgConfirmar">Enviar</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Ajustes: URL del Apps Script -->
+<dialog id="dlgCfg">
+  <div class="cfg-in">
+    <h2 style="margin:0 0 10px;font-size:17px">Ajustes</h2>
+    <label for="cfgUrl">URL de envío (Apps Script)</label>
+    <input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="nota">Pega aquí la URL del Web App que despliegas en Google Apps Script. Se guarda solo en este móvil.</div>
+    <div class="dlg-acc">
+      <button class="b-no" id="cfgCerrar">Cerrar</button>
+      <button class="b-ok" id="cfgGuardar">Guardar</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ==========================================================
+   CONFIG — puedes dejar esto vacío y pegar la URL desde ⚙.
+   Si prefieres fijarla en el código, ponla entre las comillas: */
+const ENDPOINT_FIJO = "";
+/* ========================================================== */
+
+const KEYS = ["t34","t12","sinver","vacio"];
+const LS = "contador_crucero_v1";
+
+const S = cargar();
+
+function cargar(){
+  try{ const r = JSON.parse(localStorage.getItem(LS)); if(r) return r; }catch(e){}
+  return { t34:0, t12:0, sinver:0, vacio:0,
+           fecha:hoy(), horario:"", crucero:"", pax:"" };
+}
+function hoy(){ const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function guardar(){ localStorage.setItem(LS, JSON.stringify(S)); }
+function endpoint(){ return localStorage.getItem("endpoint") || ENDPOINT_FIJO || ""; }
+
+/* --- Pintar --- */
+const $ = s=>document.querySelector(s);
+function pintar(){
+  KEYS.forEach(k=> $("#n-"+k).textContent = S[k]);
+  $("#n-total").textContent = KEYS.reduce((a,k)=>a+S[k],0);
+  $("#fecha").value = S.fecha||"";
+  $("#horario").value = S.horario||"";
+  $("#crucero").value = S.crucero||"";
+  $("#pax").value = S.pax||"";
+}
+
+/* --- Contadores --- */
+document.querySelectorAll(".card").forEach(card=>{
+  const sumar = ()=>{ const k=card.dataset.k; S[k]++; guardar(); pintar(); vibra(12); };
+  card.addEventListener("click", e=>{
+    if(e.target.closest(".menos")) return;   // el − se gestiona aparte
+    sumar();
+  });
+  card.addEventListener("keydown", e=>{
+    if(e.key==="Enter" || e.key===" "){ e.preventDefault(); sumar(); }
+  });
+});
+document.querySelectorAll(".menos").forEach(b=>{
+  b.addEventListener("click", e=>{
+    e.stopPropagation();
+    const k = b.dataset.m;
+    if(S[k]>0){ S[k]--; guardar(); pintar(); vibra(20); }
+  });
+});
+function vibra(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+
+/* --- Campos de jornada --- */
+["fecha","horario","crucero","pax"].forEach(id=>{
+  $("#"+id).addEventListener("input", e=>{ S[id]=e.target.value; guardar(); });
+});
+
+/* --- Toast --- */
+let tT;
+function toast(msg,tipo){
+  const t=$("#toast"); t.textContent=msg; t.className="toast show "+(tipo||"");
+  clearTimeout(tT); tT=setTimeout(()=>t.classList.remove("show"), 3200);
+}
+
+/* --- Reiniciar --- */
+$("#btnReset").addEventListener("click", ()=>{
+  if(!confirm("¿Poner los cuatro contadores a 0? (No borra los datos de la jornada)")) return;
+  KEYS.forEach(k=>S[k]=0); guardar(); pintar();
+});
+
+/* --- Enviar --- */
+$("#btnEnviar").addEventListener("click", ()=>{
+  const total = KEYS.reduce((a,k)=>a+S[k],0);
+  if(!S.fecha){ toast("Falta la fecha","err"); $("#jornada").open=true; return; }
+  if(total===0 && !confirm("No has contado ningún taxi. ¿Enviar igualmente?")) return;
+  $("#dlgResumen").textContent =
+    (S.crucero? S.crucero+" · ":"") + S.fecha + (S.horario? " · "+S.horario : "");
+  $("#dlgTabla").innerHTML =
+    row("Tarifa 3/4",S.t34)+row("Tarifa 1/2",S.t12)+
+    row("Sin ver tarifa",S.sinver)+row("Vacío",S.vacio)+
+    row("<b>Total taxis</b>","<b>"+total+"</b>");
+  $("#dlgEnviar").showModal();
+});
+function row(a,b){ return "<tr><td>"+a+"</td><td>"+b+"</td></tr>"; }
+$("#dlgCancelar").addEventListener("click", ()=> $("#dlgEnviar").close());
+
+$("#dlgConfirmar").addEventListener("click", async ()=>{
+  $("#dlgEnviar").close();
+  const url = endpoint();
+  if(!url){ toast("Falta la URL de envío. Ábrela en ⚙","err"); $("#dlgCfg").showModal(); return; }
+
+  const total = KEYS.reduce((a,k)=>a+S[k],0);
+  const payload = {
+    id: (crypto.randomUUID? crypto.randomUUID() : String(Date.now())+Math.random()),
+    fecha:S.fecha, horario:S.horario, crucero:S.crucero, pax:S.pax,
+    t34:S.t34, t12:S.t12, sinver:S.sinver, vacio:S.vacio, total:total
+  };
+
+  const btn=$("#btnEnviar"); btn.disabled=true; btn.textContent="Enviando…";
+  try{
+    const res = await fetch(url,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+    let ok=false;
+    try{ const j=await res.json(); ok = j && j.ok; }catch(e){ ok = res.ok; }
+    if(ok){
+      toast("Jornada enviada ✓","ok");
+      if(confirm("Enviado. ¿Empezar una jornada nueva? (pone los contadores a 0)")){
+        KEYS.forEach(k=>S[k]=0); guardar(); pintar();
+      }
+    }else{
+      toast("Se envió pero sin confirmar. Revisa la hoja.","err");
+    }
+  }catch(err){
+    toast("Sin conexión. No se envió. Reintenta.","err");
+  }finally{
+    btn.disabled=false; btn.textContent="Enviar jornada";
+  }
+});
+
+/* --- Ajustes --- */
+$("#btnCfg").addEventListener("click", ()=>{
+  $("#cfgUrl").value = localStorage.getItem("endpoint") || "";
+  $("#dlgCfg").showModal();
+});
+$("#cfgCerrar").addEventListener("click", ()=> $("#dlgCfg").close());
+$("#cfgGuardar").addEventListener("click", ()=>{
+  const v=$("#cfgUrl").value.trim();
+  if(v) localStorage.setItem("endpoint", v); else localStorage.removeItem("endpoint");
+  $("#dlgCfg").close(); toast("Ajustes guardados","ok");
+});
+
+pintar();
+
+/* --- Service worker --- */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
