@@ -63,20 +63,20 @@
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .card{
     position:relative;border:0;border-radius:16px;color:#fff;
-    padding:16px 12px 14px;text-align:left;min-height:118px;
+    padding:14px 12px 12px;text-align:left;min-height:132px;
     display:flex;flex-direction:column;justify-content:space-between;
     box-shadow:0 2px 0 rgba(0,0,0,.12);cursor:pointer;
     -webkit-user-select:none;user-select:none;transition:transform .05s;
   }
   .card:active{transform:scale(.98)}
-  .card .rot{font-size:13px;font-weight:800;line-height:1.15;padding-right:44px}
+  .card .rot{font-size:23px;font-weight:900;line-height:1.05;padding-right:46px;text-transform:uppercase;letter-spacing:.2px}
   .card .sub{font-size:11px;opacity:.85;font-weight:600;margin-top:2px}
-  .card .num{font-size:44px;font-weight:900;line-height:1;margin-top:6px}
+  .card .num{font-size:40px;font-weight:900;line-height:1;margin-top:6px}
   .card .plus{position:absolute;top:8px;right:10px;font-size:14px;font-weight:800;opacity:.75}
   .menos{
     position:absolute;bottom:10px;right:10px;
-    width:40px;height:40px;border-radius:12px;
-    background:rgba(0,0,0,.22);border:0;color:#fff;font-size:22px;font-weight:800;
+    width:52px;height:44px;border-radius:12px;
+    background:rgba(0,0,0,.24);border:0;color:#fff;font-size:18px;font-weight:900;
     display:flex;align-items:center;justify-content:center;
   }
   .menos:active{background:rgba(0,0,0,.38)}
@@ -172,32 +172,32 @@
   </details>
 
   <div class="grid">
-    <div class="card c1" role="button" tabindex="0" data-k="t34">
+    <div class="card c1" role="button" tabindex="0" data-k="t12">
       <span class="plus">+1</span>
-      <span class="rot">Tarifa 3/4<span class="sub">Interurbana</span></span>
-      <span class="num" id="n-t34">0</span>
-      <button class="menos" data-m="t34" aria-label="Restar Tarifa 3/4">−</button>
+      <span class="rot">T 1-2</span>
+      <span class="num" id="n-t12">0</span>
+      <button class="menos" data-m="t12" aria-label="Restar T 1-2">−1</button>
     </div>
 
-    <div class="card c2" role="button" tabindex="0" data-k="t12">
+    <div class="card c2" role="button" tabindex="0" data-k="t34">
       <span class="plus">+1</span>
-      <span class="rot">Tarifa 1/2<span class="sub">Urbana</span></span>
-      <span class="num" id="n-t12">0</span>
-      <button class="menos" data-m="t12" aria-label="Restar Tarifa 1/2">−</button>
+      <span class="rot">T 3-4</span>
+      <span class="num" id="n-t34">0</span>
+      <button class="menos" data-m="t34" aria-label="Restar T 3-4">−1</button>
     </div>
 
     <div class="card c3" role="button" tabindex="0" data-k="sinver">
       <span class="plus">+1</span>
-      <span class="rot">Sin ver tarifa<span class="sub">No se aprecia</span></span>
+      <span class="rot">Sin ver tarifa</span>
       <span class="num" id="n-sinver">0</span>
-      <button class="menos" data-m="sinver" aria-label="Restar Sin ver tarifa">−</button>
+      <button class="menos" data-m="sinver" aria-label="Restar Sin ver tarifa">−1</button>
     </div>
 
     <div class="card c4" role="button" tabindex="0" data-k="vacio">
       <span class="plus">+1</span>
-      <span class="rot">Vacío<span class="sub">Sin pasaje</span></span>
+      <span class="rot">Vacío</span>
       <span class="num" id="n-vacio">0</span>
-      <button class="menos" data-m="vacio" aria-label="Restar Vacío">−</button>
+      <button class="menos" data-m="vacio" aria-label="Restar Vacío">−1</button>
     </div>
   </div>
 
