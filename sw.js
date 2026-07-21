@@ -1,4 +1,4 @@
-const CACHE = "contador-crucero-v2";
+const CACHE = "contador-crucero-v3";
 const SHELL = [
   "./",
   "./index.html",

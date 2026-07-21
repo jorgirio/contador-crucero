@@ -68,29 +68,31 @@
 
   /* Botones contador */
   .grid{
-    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
-    gap:10px;flex:1;min-height:0;
+    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);
+    gap:8px;flex:1;min-height:0;
   }
   .card{
     position:relative;border:0;border-radius:16px;color:#fff;
-    padding:12px 12px 10px;text-align:left;min-height:0;overflow:hidden;
+    padding:9px 11px 8px;text-align:left;min-height:0;overflow:hidden;
     display:flex;flex-direction:column;justify-content:space-between;
     box-shadow:0 2px 0 rgba(0,0,0,.12);cursor:pointer;
     -webkit-user-select:none;user-select:none;transition:transform .05s;
   }
   .card:active{transform:scale(.98)}
-  .card .rot{font-size:clamp(18px,5.6vw,24px);font-weight:900;line-height:1.05;padding-right:52px;text-transform:uppercase;letter-spacing:.2px}
-  .card .num{font-size:clamp(30px,10vw,46px);font-weight:900;line-height:1;margin-top:4px}
-  .card .plus{position:absolute;top:8px;right:10px;font-size:14px;font-weight:800;opacity:.75}
+  .card .rot{font-size:clamp(16px,4.8vw,22px);font-weight:900;line-height:1.02;padding-right:50px;text-transform:uppercase;letter-spacing:.2px}
+  .card .num{font-size:clamp(26px,8vw,40px);font-weight:900;line-height:1;margin-top:2px}
+  .card .plus{position:absolute;top:7px;right:10px;font-size:13px;font-weight:800;opacity:.75}
   .menos{
-    position:absolute;bottom:10px;right:10px;
-    width:56px;height:46px;border-radius:12px;
-    background:rgba(0,0,0,.24);border:0;color:#fff;font-size:18px;font-weight:900;
+    position:absolute;bottom:8px;right:9px;
+    width:52px;height:40px;border-radius:11px;
+    background:rgba(0,0,0,.24);border:0;color:#fff;font-size:17px;font-weight:900;
     display:flex;align-items:center;justify-content:center;
   }
   .menos:active{background:rgba(0,0,0,.38)}
   .c1{background:var(--azul)}
   .c2{background:var(--cyan)}
+  .g1{background:#178a4a}
+  .g2{background:#28a55f}
   .c3{background:#5a6172}
   .c4{background:#9aa1b3}
 
@@ -169,12 +171,12 @@
         <label for="horario">Horario</label>
         <input type="text" id="horario" placeholder="08:00–13:00" inputmode="text">
       </div>
-      <div class="campo full">
+      <div class="campo">
         <label for="crucero">Crucero</label>
         <input type="text" id="crucero" placeholder="Nombre del barco">
       </div>
       <div class="campo">
-        <label for="pax">Pax estimados</label>
+        <label for="pax">Pax est.</label>
         <input type="number" id="pax" inputmode="numeric" min="0" placeholder="0">
       </div>
     </div>
@@ -193,6 +195,20 @@
       <span class="rot">T 3-4</span>
       <span class="num" id="n-t34">0</span>
       <button class="menos" data-m="t34" aria-label="Restar T 3-4">−1</button>
+    </div>
+
+    <div class="card g1" role="button" tabindex="0" data-k="tourali">
+      <span class="plus">+1</span>
+      <span class="rot">Tour Alicante</span>
+      <span class="num" id="n-tourali">0</span>
+      <button class="menos" data-m="tourali" aria-label="Restar Tour Alicante">−1</button>
+    </div>
+
+    <div class="card g2" role="button" tabindex="0" data-k="tourprov">
+      <span class="plus">+1</span>
+      <span class="rot">Tour Provincia</span>
+      <span class="num" id="n-tourprov">0</span>
+      <button class="menos" data-m="tourprov" aria-label="Restar Tour Provincia">−1</button>
     </div>
 
     <div class="card c3" role="button" tabindex="0" data-k="sinver">
@@ -257,14 +273,17 @@
 const ENDPOINT_FIJO = "https://script.google.com/macros/s/AKfycbw16fv4dZE0I9X7o908SXJeIL2gYa0Lukjmru8_aprO4JWEn-lVwXbNudLufHN_vG1C/exec";
 /* ========================================================== */
 
-const KEYS = ["t34","t12","sinver","vacio"];
-const LS = "contador_crucero_v1";
+const KEYS = ["t12","t34","tourali","tourprov","sinver","vacio"];
+const LS = "contador_crucero_v2";
 
 const S = cargar();
 
 function cargar(){
-  try{ const r = JSON.parse(localStorage.getItem(LS)); if(r) return r; }catch(e){}
-  return { t34:0, t12:0, sinver:0, vacio:0,
+  try{
+    const r = JSON.parse(localStorage.getItem(LS));
+    if(r){ KEYS.forEach(k=>{ if(typeof r[k]!=="number") r[k]=0; }); return r; }
+  }catch(e){}
+  return { t12:0, t34:0, tourali:0, tourprov:0, sinver:0, vacio:0,
            fecha:hoy(), horario:"", crucero:"", pax:"" };
 }
 function hoy(){ const d=new Date(); const p=n=>String(n).padStart(2,"0");
@@ -317,7 +336,7 @@ function toast(msg,tipo){
 
 /* --- Reiniciar --- */
 $("#btnReset").addEventListener("click", ()=>{
-  if(!confirm("¿Poner los cuatro contadores a 0? (No borra los datos de la jornada)")) return;
+  if(!confirm("¿Poner los contadores a 0? (No borra los datos de la jornada)")) return;
   KEYS.forEach(k=>S[k]=0); guardar(); pintar();
 });
 
@@ -329,7 +348,8 @@ $("#btnEnviar").addEventListener("click", ()=>{
   $("#dlgResumen").textContent =
     (S.crucero? S.crucero+" · ":"") + S.fecha + (S.horario? " · "+S.horario : "");
   $("#dlgTabla").innerHTML =
-    row("Tarifa 3/4",S.t34)+row("Tarifa 1/2",S.t12)+
+    row("T 1-2",S.t12)+row("T 3-4",S.t34)+
+    row("Tour Alicante",S.tourali)+row("Tour Provincia",S.tourprov)+
     row("Sin ver tarifa",S.sinver)+row("Vacío",S.vacio)+
     row("<b>Total taxis</b>","<b>"+total+"</b>");
   $("#dlgEnviar").showModal();
@@ -346,7 +366,8 @@ $("#dlgConfirmar").addEventListener("click", async ()=>{
   const payload = {
     id: (crypto.randomUUID? crypto.randomUUID() : String(Date.now())+Math.random()),
     fecha:S.fecha, horario:S.horario, crucero:S.crucero, pax:S.pax,
-    t34:S.t34, t12:S.t12, sinver:S.sinver, vacio:S.vacio, total:total
+    t12:S.t12, t34:S.t34, tourali:S.tourali, tourprov:S.tourprov,
+    sinver:S.sinver, vacio:S.vacio, total:total
   };
 
   const btn=$("#btnEnviar"); btn.disabled=true; btn.textContent="Enviando…";
